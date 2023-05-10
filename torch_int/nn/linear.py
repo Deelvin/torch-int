@@ -47,13 +47,14 @@ class W8A8B8O8Linear(torch.nn.Module):
         int8_module = W8A8B8O8Linear(
             module.in_features, module.out_features)
         int8_weight, weight_scale = quantize_per_tensor_absmax(module.weight)
-        int8_bias, bias_scale = quantize_per_tensor_absmax(module.bias)
+        if module.bias is not None:
+            int8_bias, bias_scale = quantize_per_tensor_absmax(module.bias)
+            int8_module.bias = int8_bias
+            beta = bias_scale / output_scale
+            int8_module.b = beta
         alpha = input_scale * weight_scale / output_scale
-        beta = bias_scale / output_scale
         int8_module.weight = int8_weight
-        int8_module.bias = int8_bias
         int8_module.a = alpha
-        int8_module.b = beta
         return int8_module
 
 
@@ -92,13 +93,14 @@ class W8A8B8O8LinearReLU(torch.nn.Module):
         int8_module = W8A8B8O8LinearReLU(
             module.in_features, module.out_features)
         int8_weight, weight_scale = quantize_per_tensor_absmax(module.weight)
-        int8_bias, bias_scale = quantize_per_tensor_absmax(module.bias)
+        if module.bias is not None:
+            int8_bias, bias_scale = quantize_per_tensor_absmax(module.bias)
+            int8_module.bias = int8_bias
+            beta = bias_scale / output_scale
+            int8_module.b = beta
         alpha = input_scale * weight_scale / output_scale
-        beta = bias_scale / output_scale
         int8_module.weight = int8_weight
-        int8_module.bias = int8_bias
         int8_module.a = alpha
-        int8_module.b = beta
         return int8_module
 
 
@@ -222,7 +224,8 @@ class W8A8BFP32OFP32Linear(torch.nn.Module):
         int8_weight, weight_scale = quantize_per_tensor_absmax(module.weight)
         alpha = input_scale * weight_scale
         int8_module.weight = int8_weight
-        int8_module.bias = module.bias.to(torch.float32)
+        if module.bias is not None:
+            int8_module.bias = module.bias.to(torch.float32)
         int8_module.a = alpha
         int8_module.input_scale = input_scale
         int8_module.weight_scale = weight_scale
