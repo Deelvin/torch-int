@@ -32,6 +32,14 @@ torch::Tensor linear_relu_a8_w8_b8_o8(torch::Tensor input,  // INT8
                                       float beta            // FP32
 );
 
+// used by dense-gated activation-dense
+torch::Tensor linear_relu_a8_w8_bfp32_ofp32(torch::Tensor input,  // INT8
+                                            torch::Tensor weight, // INT8
+                                            torch::Tensor bias,   // FP32
+                                            float alpha,          // FP32
+                                            float beta            // FP32
+);
+
 // used by q_proj, k_proj, v_proj, return INT8
 torch::Tensor linear_a8_w8_b8_o8(torch::Tensor input,  // INT8
                                  torch::Tensor weight, // INT8
