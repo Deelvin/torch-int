@@ -44,10 +44,14 @@ class W8A8B8O8Linear(torch.nn.Module):
         return y
 
     @staticmethod
-    def from_float(module: torch.nn.Linear, input_scale, output_scale):
+    def from_float(module: torch.nn.Linear, input_scale, output_scale, t=False):
         int8_module = W8A8B8O8Linear(
             module.in_features, module.out_features)
-        int8_weight, weight_scale = quantize_per_tensor_absmax(module.weight)
+        if t:
+            fp_weight = module.weight.t().contiguous()
+        else:
+            fp_weight = module.weight
+        int8_weight, weight_scale = quantize_per_tensor_absmax(fp_weight)
         if module.bias is not None:
             int8_bias, bias_scale = quantize_per_tensor_absmax(module.bias)
             int8_module.bias = int8_bias
