@@ -47,8 +47,10 @@ class W8A8B8O8Linear(torch.nn.Module):
     def from_float(module: torch.nn.Linear, input_scale, output_scale, t=False):
         int8_module = W8A8B8O8Linear(
             module.in_features, module.out_features)
-        if t:
+        if t and module.weight.is_contiguous():
             fp_weight = module.weight.t().contiguous()
+        elif t:
+            fp_weight = module.weight.contiguous()
         else:
             fp_weight = module.weight
         int8_weight, weight_scale = quantize_per_tensor_absmax(fp_weight)
