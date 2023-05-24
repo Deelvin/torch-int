@@ -269,10 +269,16 @@ class W8A8BFP32OFP32Linear(torch.nn.Module):
         return y
 
     @staticmethod
-    def from_float(module: torch.nn.Linear, input_scale):
+    def from_float(module: torch.nn.Linear, input_scale, t=False):
         int8_module = W8A8BFP32OFP32Linear(
             module.in_features, module.out_features)
-        int8_weight, weight_scale = quantize_per_tensor_absmax(module.weight)
+        if t and module.weight.is_contiguous():
+            fp_weight = module.weight.t().contiguous()
+        elif t:
+            fp_weight = module.weight.contiguous()
+        else:
+            fp_weight = module.weight
+        int8_weight, weight_scale = quantize_per_tensor_absmax(fp_weight)
         alpha = input_scale * weight_scale
         int8_module.weight = int8_weight
         if module.bias is not None:
