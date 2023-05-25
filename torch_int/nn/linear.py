@@ -95,11 +95,17 @@ class W8A8B8O8LinearReLU(torch.nn.Module):
         return y
 
     @staticmethod
-    def from_float(module: torch.nn.Linear, input_scale, output_scale):
+    def from_float(module: torch.nn.Linear, input_scale, output_scale, t=False):
         # TODO: add zero-point to prevent the bit waste
         int8_module = W8A8B8O8LinearReLU(
             module.in_features, module.out_features)
-        int8_weight, weight_scale = quantize_per_tensor_absmax(module.weight)
+        if t and module.weight.is_contiguous():
+            fp_weight = module.weight.t().contiguous()
+        elif t:
+            fp_weight = module.weight.contiguous()
+        else:
+            fp_weight = module.weight
+        int8_weight, weight_scale = quantize_per_tensor_absmax(fp_weight)
         if module.bias is not None:
             int8_bias, bias_scale = quantize_per_tensor_absmax(module.bias)
             int8_module.bias = int8_bias
